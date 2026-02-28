@@ -1,20 +1,23 @@
-# Visual Studio cache
+## --- IDE Files ---
 .vs/
-
-# Build output folders
-TaxLedger/TaxLedger.Domain/bin/
-TaxLedger/TaxLedger.Domain/obj/
-TaxLedger/TaxLedger.Tests/bin/
-TaxLedger/TaxLedger.Tests/obj/
-
-# User-specific files
+.idea/
 *.user
 *.suo
-*.cache
-*.pdb
+*.sln.docstates
 
-# Test artifacts
-TaxLedger/TaxLedger.Tests/TestResults/
+## --- Build Outputs (All Projects) ---
+# Matches bin/ and obj/ folders at any depth
+**/bin/
+**/obj/
 
-# Logs
+## --- OS Files ---
+.DS_Store
+Thumbs.db
+
+## --- Test Results ---
+TestResults/
+*.trx
+
+## --- Publishing/Logs ---
 *.log
+publish/
