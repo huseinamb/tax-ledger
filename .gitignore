@@ -3,5 +3,17 @@
 *.user
 *.suo
 *.cache
-*.dbmdl
 *.pdb
+
+# Build outputs
+bin/
+obj/
+
+# Test artifacts
+TestResults/
+
+# Logs
+*.log
+
+# Others
+*.dbmdl
