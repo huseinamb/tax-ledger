@@ -1,19 +1,20 @@
-# Visual Studio
+# Visual Studio cache
 .vs/
+
+# Build output folders
+TaxLedger/TaxLedger.Domain/bin/
+TaxLedger/TaxLedger.Domain/obj/
+TaxLedger/TaxLedger.Tests/bin/
+TaxLedger/TaxLedger.Tests/obj/
+
+# User-specific files
 *.user
 *.suo
 *.cache
 *.pdb
 
-# Build outputs
-**/bin/
-**/obj/
-
 # Test artifacts
-TestResults/
+TaxLedger/TaxLedger.Tests/TestResults/
 
 # Logs
 *.log
-
-# Others
-*.dbmdl
