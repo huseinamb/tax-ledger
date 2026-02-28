@@ -6,8 +6,8 @@
 *.pdb
 
 # Build outputs
-bin/
-obj/
+**/bin/
+**/obj/
 
 # Test artifacts
 TestResults/
