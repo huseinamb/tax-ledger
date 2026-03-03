@@ -12,4 +12,4 @@ var swedishReporter = new SwedishK4ReportGenerator();
 
 // 3. Initialize and run
 var taxApp = new TaxService(swedishStrategy, swedishReporter);
-taxApp.GenerateTaxReport(myTransactions, "annual_tax_2024.txt");
+taxApp.GenerateTaxReport(myTransactions,2024, "annual_tax_2024.txt");

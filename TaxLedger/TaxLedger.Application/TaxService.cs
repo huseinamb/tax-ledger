@@ -17,13 +17,22 @@ namespace TaxLedger.Application
             _reportGenerator = reporter;
         }
 
-        public void GenerateTaxReport(IEnumerable<CanonicalTransaction> transactions, string outputPath)
+        public void GenerateTaxReport(IEnumerable<CanonicalTransaction> transactions, int targetYear, string outputPath)
         {
-            // 1. Run the math using the injected strategy (e.g., Swedish Average Cost)
-            var results = _calculationStrategy.Calculate(transactions);
+            // Step 1: Filter to all history up to the end of the target year
+            var historicalData = transactions
+                .Where(t => t.Timestamp.Year <= targetYear)
+                .OrderBy(t => t.Timestamp);
 
-            // 2. Pass the results to the reporter (e.g., K4 Generator)
-            _reportGenerator.Export(results, outputPath);
+            // Step 2: Strategy calculates EVERYTHING (Builds the GAV pool correctly)
+            var allResults = _calculationStrategy.Calculate(historicalData);
+
+            // Step 3: Service slices the results for the specific tax year
+            var taxYearResults = allResults
+                .Where(r => r.OriginTransaction.Timestamp.Year == targetYear)
+                .ToList();
+
+            _reportGenerator.Export(taxYearResults, outputPath);
         }
     }
 }
