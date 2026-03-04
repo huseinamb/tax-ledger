@@ -59,5 +59,9 @@ namespace TaxLedger.Data
             if (_prices.TryGetValue(date.Date, out decimal price)) return price;
             return _prices.Values.Last();
         }
+        public Dictionary<DateTime, decimal> GetPrices()
+        {
+            return _prices;
+        }
     }
 }
