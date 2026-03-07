@@ -8,7 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TaxLedger.Data\TaxLedger.Data.csproj" />
     <ProjectReference Include="..\TaxLedger.Domain\TaxLedger.Domain.csproj" />
   </ItemGroup>
 

@@ -1,6 +1,5 @@
 ﻿// 1. Get your data
 using TaxLedger.Application;
-using TaxLedger.Data;
 using TaxLedger.Domain.Reporting.Countries;
 using TaxLedger.Domain.TaxEngine.Strategies;
 using TaxLedger.Domain.Transactions;

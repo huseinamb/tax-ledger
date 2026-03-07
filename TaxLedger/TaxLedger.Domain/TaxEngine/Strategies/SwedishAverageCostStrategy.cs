@@ -12,24 +12,18 @@ namespace TaxLedger.Domain.TaxEngine.Strategies
         public IEnumerable<TaxCalculationResult> Calculate(IEnumerable<CanonicalTransaction> transactions)
         {
             var results = new List<TaxCalculationResult>();
+            // Crucial: Process chronological order to maintain correct GAV
             var sortedTxs = transactions.OrderBy(t => t.Timestamp).ToList();
 
             foreach (var tx in sortedTxs)
             {
-                // TODO: Handle 'Lån' (Loans). 
-                // In Sweden, lending crypto (utlåning) can be a taxable disposal if you lose 
-                // "disfogensrätt" (right of disposal) or receive a different token (e.g., aBTC).
-
-                // --- SCENARIO: ACQUISITION (Entering/Increasing a Position) ---
-                // Covers: 
-                // 1. Buy BTC with SEK (AssetOut: BTC, AssetIn: SEK)
-                // 2. Received ETH from a Swap (AssetOut: ETH)
-                // 3. Deposit BTC from another wallet (AssetOut: BTC, AssetIn: null)
-                if (!string.IsNullOrEmpty(tx.AssetOut) && tx.AssetOut != "SEK")
+                // --- SCENARIO: ACQUISITION (Asset enters the wallet) ---
+                // AssetIn is the crypto you just got (e.g., BTC).
+                if (!string.IsNullOrEmpty(tx.AssetIn) && tx.AssetIn != "SEK")
                 {
                     UpdatePool(
-                        tx.AssetOut,
-                        tx.AmountOut,
+                        tx.AssetIn,
+                        tx.AmountIn,
                         tx.FiatValueAtTimestamp,
                         tx.FeeAmount,
                         tx.FeeAsset,
@@ -37,19 +31,12 @@ namespace TaxLedger.Domain.TaxEngine.Strategies
                     );
                 }
 
-                // --- SCENARIO: DISPOSAL (Leaving/Reducing a Position) ---
-                // Covers:
-                // 1. Sell BTC for SEK (AssetIn: BTC, AssetOut: SEK)
-                // 2. Swap BTC for ETH (AssetIn: BTC - this part is the "Sale" of BTC)
-                // 3. Using crypto to pay for a service (AssetIn: Crypto, AssetOut: null/Service)
-                if (!string.IsNullOrEmpty(tx.AssetIn) && tx.AssetIn != "SEK")
+                // --- SCENARIO: DISPOSAL (Asset leaves the wallet) ---
+                // AssetOut is the crypto you just gave away or sold.
+                if (!string.IsNullOrEmpty(tx.AssetOut) && tx.AssetOut != "SEK")
                 {
                     // SWEDEN RULE: Sale Price is reduced by fees ONLY if paid in SEK.
                     decimal disposalFeeInSek = (tx.FeeAsset == "SEK") ? tx.FeeAmount : 0m;
-
-                    // TODO: Handle 'FeeAsset' if NOT SEK. 
-                    // If a fee is paid in BNB/BTC, that fee is technically a separate "Sale" 
-                    // of that crypto and needs its own TaxCalculationResult.
 
                     var result = ProcessDisposal(tx, disposalFeeInSek);
                     if (result != null) results.Add(result);
@@ -69,43 +56,45 @@ namespace TaxLedger.Domain.TaxEngine.Strategies
                 _holdings[asset].TotalAmount += amount;
 
                 // SWEDEN RULE: Acquisition cost (Omkostnadsbelopp) increases by value + SEK fees.
+                // If you buy BTC for 10,000 + 100 fee, your cost basis is 10,100.
                 decimal feeInSek = (feeAsset == "SEK") ? feeAmount : 0m;
                 _holdings[asset].TotalCost += (fiatValue + feeInSek);
-
-                // TODO: If feeAsset != "SEK", the SEK value of that crypto fee should still 
-                // be added to this asset's cost basis, but it requires a price look-up.
             }
         }
 
         private TaxCalculationResult? ProcessDisposal(CanonicalTransaction tx, decimal feeInSek)
         {
-            // Safety Check: If we sell an asset we don't have recorded.
-            if (!_holdings.ContainsKey(tx.AssetIn!) || _holdings[tx.AssetIn!].TotalAmount == 0)
+            string assetSold = tx.AssetOut!;
+
+            // Safety Check: Avoid negative balances
+            if (!_holdings.ContainsKey(assetSold) || _holdings[assetSold].TotalAmount == 0)
             {
-                // TODO: Handle "Missing Acquisition". Usually, we assume 0 cost basis (100% profit) 
-                // or throw a warning to the user to check their transaction history.
+                // In a production app, we would log a warning: "Missing purchase history for {assetSold}"
                 return null;
             }
 
-            var holding = _holdings[tx.AssetIn!];
+            var holding = _holdings[assetSold];
 
-            // Math: GAV (Genomsnittligt omkostnadsbelopp) per unit
+            // GAV Calculation (Average Cost per unit)
             decimal averageCostPerUnit = holding.TotalCost / holding.TotalAmount;
-            decimal costBasisOfSoldAmount = tx.AmountIn * averageCostPerUnit;
 
-            // Sale Price after deducting SEK fees
+            // This is the "Omkostnadsbelopp" for the specific amount sold
+            decimal costBasisOfSoldAmount = tx.AmountOut * averageCostPerUnit;
+
+            // Sale Price (Försäljningspris) after deducting SEK fees
+            // Note: If this was a swap, FiatValueAtTimestamp is the SEK market value of the trade
             decimal netSalePrice = tx.FiatValueAtTimestamp - feeInSek;
 
             var result = new TaxCalculationResult
             {
                 OriginTransaction = tx,
-                Asset = tx.AssetIn!,
-                PurchasePrice = costBasisOfSoldAmount, // Used for K4 Form
-                SalePrice = netSalePrice              // Used for K4 Form
+                Asset = assetSold,
+                PurchasePrice = costBasisOfSoldAmount, // "Omkostnadsbelopp" for K4
+                SalePrice = netSalePrice              // "Försäljningspris" for K4
             };
 
-            // Update pool for the next transaction in the timeline
-            holding.TotalAmount -= tx.AmountIn;
+            // Update pool: Reduce holdings by the amount that left the wallet
+            holding.TotalAmount -= tx.AmountOut;
             holding.TotalCost -= costBasisOfSoldAmount;
 
             return result;
