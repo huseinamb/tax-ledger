@@ -1,0 +1,33 @@
+{
+  "Name": "Anela_Skatteverket_Example",
+  "Transactions": [
+    {
+      "Timestamp": "2021-10-12T00:00:00",
+      "Type": "Trade",
+      "AssetIn": "BTC",
+      "AmountIn": 0.5,
+      "AssetOut": "SEK",
+      "AmountOut": 20000,
+      "FiatValueAtTimestamp": 20000
+    },
+    {
+      "Timestamp": "2021-11-12T00:00:00",
+      "Type": "Trade",
+      "AssetIn": "BTC",
+      "AmountIn": 0.2,
+      "AssetOut": "SEK",
+      "AmountOut": 10000,
+      "FiatValueAtTimestamp": 10000
+    },
+    {
+      "Timestamp": "2022-10-16T00:00:00",
+      "Type": "Trade",
+      "AssetIn": "SEK",
+      "AmountIn": 40000,
+      "AssetOut": "BTC",
+      "AmountOut": 0.4,
+      "FiatValueAtTimestamp": 40000
+    }
+  ],
+  "ExpectedCapitalGains": { "BTC": 22857 }
+}

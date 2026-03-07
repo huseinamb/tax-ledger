@@ -1,0 +1,61 @@
+{
+  "Name": "Eva_Skatteverket_Example",
+  "Transactions": [
+    {
+      "Timestamp": "2024-01-01T10:00:00",
+      "Type": "Trade",
+      "AssetIn": "BTC",
+      "AmountIn": 10.0,
+      "AssetOut": "SEK",
+      "AmountOut": 10000,
+      "FiatValueAtTimestamp": 10000
+    },
+    {
+      "Timestamp": "2024-01-01T11:00:00",
+      "Type": "Trade",
+      "AssetIn": "BTC",
+      "AmountIn": 10.0,
+      "AssetOut": "SEK",
+      "AmountOut": 50000,
+      "FiatValueAtTimestamp": 50000
+    },
+    {
+      "Timestamp": "2024-01-02T10:00:00",
+      "Type": "Trade",
+      "AssetIn": "SEK",
+      "AmountIn": 60000,
+      "AssetOut": "BTC",
+      "AmountOut": 15.0,
+      "FiatValueAtTimestamp": 60000
+    },
+    {
+      "Timestamp": "2024-01-03T10:00:00",
+      "Type": "Trade",
+      "AssetIn": "BTC",
+      "AmountIn": 5.0,
+      "AssetOut": "SEK",
+      "AmountOut": 25000,
+      "FiatValueAtTimestamp": 25000
+    },
+    {
+      "Timestamp": "2024-01-04T10:00:00",
+      "Type": "Trade",
+      "AssetIn": "SEK",
+      "AmountIn": 2000,
+      "AssetOut": "BTC",
+      "AmountOut": 0.345,
+      "FiatValueAtTimestamp": 2000
+    },
+    {
+      "Timestamp": "2024-01-05T10:00:00",
+      "Type": "Trade",
+      "AssetIn": "SEK",
+      "AmountIn": 15000,
+      "AssetOut": "BTC",
+      "AmountOut": 5.0,
+      "FiatValueAtTimestamp": 15000
+    }
+  ],
+  "ExpectedCapitalGains": { "BTC": 15620 },
+  "ExpectedCapitalLosses": { "BTC": 5000 }
+}

@@ -4,11 +4,56 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
+using System.Text.Json;
 
 namespace TaxLedger.Tests.TaxEngine.Strategies
 {
     public class SwedishAverageCostStrategyTests
     {
+        [Theory]
+        [MemberData(nameof(GetScenarios))]
+        public void Calculate_Scenario_MatchesExpectedResults(TaxScenario scenario)
+        {
+            var strategy = new SwedishAverageCostStrategy();
+            var results = strategy.Calculate(scenario.Transactions).ToList();
+
+            // Group results by Asset to compare against our Dictionaries
+            var actualGains = results
+                .Where(r => (r.SalePrice - r.PurchasePrice) > 0)
+                .GroupBy(r => r.Asset)
+                .ToDictionary(g => g.Key, g => g.Sum(r => r.SalePrice - r.PurchasePrice));
+
+            var actualLosses = results
+                .Where(r => (r.SalePrice - r.PurchasePrice) < 0)
+                .GroupBy(r => r.Asset)
+                .ToDictionary(g => g.Key, g => Math.Abs(g.Sum(r => r.SalePrice - r.PurchasePrice)));
+
+            // Assert Gains
+            foreach (var expected in scenario.ExpectedCapitalGains)
+            {
+                Assert.True(actualGains.ContainsKey(expected.Key), $"Missing gain for {expected.Key}");
+                Assert.Equal(expected.Value, Math.Round(actualGains[expected.Key], 0));
+            }
+
+            // Assert Losses
+            foreach (var expected in scenario.ExpectedCapitalLosses)
+            {
+                Assert.True(actualLosses.ContainsKey(expected.Key), $"Missing loss for {expected.Key}");
+                Assert.Equal(expected.Value, Math.Round(actualLosses[expected.Key], 0));
+            }
+        }
+        public static IEnumerable<object[]> GetScenarios()
+        {
+            var folder = Path.Combine(AppContext.BaseDirectory, "Scenarios");
+            var files = Directory.GetFiles(folder, "*.json");
+
+            foreach (var file in files)
+            {
+                var json = File.ReadAllText(file);
+                var scenario = JsonSerializer.Deserialize<TaxScenario>(json);
+                yield return new object[] { scenario! };
+            }
+        }
         [Fact]
         public void Calculate_BtcToEthSwap_CorrectlyCalculatesGAVAndFees()
         {
