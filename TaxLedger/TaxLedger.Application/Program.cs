@@ -1,9 +1,15 @@
 ﻿// 1. Get your data
+using System.Formats.Asn1;
+using System.Globalization;
 using TaxLedger.Application;
 using TaxLedger.Data;
 using TaxLedger.Domain.Reporting.Countries;
 using TaxLedger.Domain.TaxEngine.Strategies;
 using TaxLedger.Domain.Transactions;
+using CsvHelper;
+using CsvHelper.Configuration;
+using System.IO;
+using TaxLedger.ExchangeAdapters.Binance;
 
 var myTransactions = SyntheticDataset.GetSampleTransactions();
 
@@ -14,6 +20,31 @@ var swedishReporter = new SwedishK4ReportGenerator();
 // 3. Initialize and run
 var taxApp = new TaxService(swedishStrategy, swedishReporter);
 taxApp.GenerateTaxReport(myTransactions,2024, "annual_tax_2024.txt");
+
+
+
+
+// CSV file path
+var path = "1_simulated_binance.csv";
+
+
+using var reader = new StreamReader(path);
+using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
+
+var rawRows = csv.GetRecords<BinanceRawRow>().ToList();
+
+// Parse
+var parser = new BinanceTransactionParser();
+var canonical = parser.Parse(rawRows);
+
+Console.WriteLine($"Parsed {canonical.Count()} canonical transactions.");
+foreach (var tx in canonical.Take(5))
+{
+    Console.WriteLine($"{tx.Timestamp} {tx.Type} {tx.AssetIn} {tx.AmountIn} -> {tx.AssetOut} {tx.AmountOut} Fee: {tx.FeeAmount} {tx.FeeAsset}");
+}
+
+Console.WriteLine("Press any key to exit...");
+Console.ReadKey();
 
 //var asset = new SyntheticAsset(
 //           name: "SYNTH-BTC",

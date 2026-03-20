@@ -9,7 +9,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaxLedger.Tests", "TaxLedge
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaxLedger.Application", "TaxLedger.Application\TaxLedger.Application.csproj", "{157C148D-7C4F-494B-842E-08A0CB7FA8F9}"
 EndProject
+<<<<<<< Updated upstream
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaxLedger.Data", "TaxLedger.Data\TaxLedger.Data.csproj", "{E7010A98-AA66-41AB-AE21-6241E46ECD9D}"
+=======
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaxLedger.ExchangeAdapters", "TaxLedger.ExchangeAdapters\TaxLedger.ExchangeAdapters.csproj", "{B2779522-8661-42C3-A225-D7463C0BD7BA}"
+>>>>>>> Stashed changes
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,10 +33,17 @@ Global
 		{157C148D-7C4F-494B-842E-08A0CB7FA8F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{157C148D-7C4F-494B-842E-08A0CB7FA8F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{157C148D-7C4F-494B-842E-08A0CB7FA8F9}.Release|Any CPU.Build.0 = Release|Any CPU
+<<<<<<< Updated upstream
 		{E7010A98-AA66-41AB-AE21-6241E46ECD9D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E7010A98-AA66-41AB-AE21-6241E46ECD9D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E7010A98-AA66-41AB-AE21-6241E46ECD9D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E7010A98-AA66-41AB-AE21-6241E46ECD9D}.Release|Any CPU.Build.0 = Release|Any CPU
+=======
+		{B2779522-8661-42C3-A225-D7463C0BD7BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2779522-8661-42C3-A225-D7463C0BD7BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2779522-8661-42C3-A225-D7463C0BD7BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2779522-8661-42C3-A225-D7463C0BD7BA}.Release|Any CPU.Build.0 = Release|Any CPU
+>>>>>>> Stashed changes
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
