@@ -19,7 +19,14 @@
   <ItemGroup>
     <ProjectReference Include="..\TaxLedger.Application\TaxLedger.Application.csproj" />
     <ProjectReference Include="..\TaxLedger.Domain\TaxLedger.Domain.csproj" />
+    <ProjectReference Include="..\TaxLedger.ExchangeAdapters\TaxLedger.ExchangeAdapters.csproj" />
+    <ProjectReference Include="..\TaxLedger.Infrastructure\TaxLedger.Infrastructure.csproj" />
   </ItemGroup>
+	<ItemGroup>
+		<None Update="TestData\1_simulated_binance.csv">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
 
   <ItemGroup>
     <Using Include="Xunit" />

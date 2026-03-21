@@ -1,0 +1,6 @@
+@TaxLedger.Api_HostAddress = http://localhost:5117
+
+GET {{TaxLedger.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
