@@ -42,7 +42,8 @@ public sealed class BinancePriceProvider : ICryptoPriceProvider
                 $"No kline data returned from Binance for {symbol} at {timestamp:u}");
 
         // Kline format: [openTime, open, high, low, close, ...]
-        var close = decimal.Parse(klines[0][4].GetString()!);
+        var close = decimal.Parse(klines[0][4].GetString()!, System.Globalization.CultureInfo.InvariantCulture);
+
 
         _cache[cacheKey] = close;
         return close;
