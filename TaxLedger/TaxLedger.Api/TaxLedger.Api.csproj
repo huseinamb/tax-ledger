@@ -8,5 +8,11 @@
 		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.0" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
 	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\TaxLedger.Application\TaxLedger.Application.csproj" />
+	  <ProjectReference Include="..\TaxLedger.Domain\TaxLedger.Domain.csproj" />
+	  <ProjectReference Include="..\TaxLedger.ExchangeAdapters\TaxLedger.ExchangeAdapters.csproj" />
+	  <ProjectReference Include="..\TaxLedger.Infrastructure\TaxLedger.Infrastructure.csproj" />
+	</ItemGroup>
 	
 </Project>

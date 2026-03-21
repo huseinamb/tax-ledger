@@ -19,6 +19,8 @@
   <ItemGroup>
     <ProjectReference Include="..\TaxLedger.Application\TaxLedger.Application.csproj" />
     <ProjectReference Include="..\TaxLedger.Domain\TaxLedger.Domain.csproj" />
+    <ProjectReference Include="..\TaxLedger.ExchangeAdapters\TaxLedger.ExchangeAdapters.csproj" />
+    <ProjectReference Include="..\TaxLedger.Infrastructure\TaxLedger.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

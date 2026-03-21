@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using TaxLedger.Domain.Transactions;
+using TaxLedger.Application.Parsing;
 
 namespace TaxLedger.ExchangeAdapters.Binance
 {

@@ -6,4 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\TaxLedger.Application\TaxLedger.Application.csproj" />
+    <ProjectReference Include="..\TaxLedger.Domain\TaxLedger.Domain.csproj" />
+  </ItemGroup>
+
 </Project>
