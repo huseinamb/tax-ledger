@@ -4,97 +4,95 @@ using System.Linq;
 using TaxLedger.Domain.Transactions;
 using TaxLedger.Application.Parsing;
 
-namespace TaxLedger.ExchangeAdapters.Binance
+namespace TaxLedger.ExchangeAdapters.Binance;
+
+public sealed class BinanceTransactionParser : IExchangeTransactionParser<BinanceRawRow>
 {
-    public sealed class BinanceTransactionParser : IExchangeTransactionParser<BinanceRawRow>
+    public IEnumerable<CanonicalTransaction> Parse(IEnumerable<BinanceRawRow> rows)
     {
-        public IEnumerable<CanonicalTransaction> Parse(IEnumerable<BinanceRawRow> rows)
+        var canonicalList = new List<CanonicalTransaction>();
+        var rowList = rows.ToList();
+
+        // --- Non-trade rows: deposits, withdrawals, transfers ---
+        var nonTradeRows = rowList
+            .Where(r => IsDeposit(r) || IsWithdrawal(r) || IsTransfer(r));
+
+        foreach (var row in nonTradeRows)
         {
-            var canonicalList = new List<CanonicalTransaction>();
+            var type = IsDeposit(row) ? TransactionType.Deposit :
+                       IsWithdrawal(row) ? TransactionType.Withdrawal :
+                                           TransactionType.Transfer;
 
-            // Handle deposits, withdrawals, transfers directly
-            var nonTradeRows = rows
-                .Where(r => r.Operation.Contains("Deposit", StringComparison.OrdinalIgnoreCase) ||
-                            r.Operation.Contains("Withdraw", StringComparison.OrdinalIgnoreCase) ||
-                            r.Operation.Contains("Transfer", StringComparison.OrdinalIgnoreCase));
+            canonicalList.Add(new CanonicalTransaction(
+                timestamp: row.Time,
+                type: type,
+                assetIn: row.Change > 0 ? row.Coin : null,
+                amountIn: row.Change > 0 ? Convert.ToDecimal(row.Change) : 0m,
+                assetOut: row.Change < 0 ? row.Coin : null,
+                amountOut: row.Change < 0 ? Math.Abs(Convert.ToDecimal(row.Change)) : 0m,
+                feeAsset: null,
+                feeAmount: 0m,
+                fiatValueAtTimestamp: 0m,
+                fiatValueAtTimestampCurrency: "USD"
+            ));
+        }
 
-            foreach (var row in nonTradeRows)
+        // --- Trade rows: everything that is not deposit/withdrawal/transfer ---
+        var tradeRows = rowList
+            .Where(r => !IsDeposit(r) && !IsWithdrawal(r) && !IsTransfer(r))
+            .OrderBy(r => r.Time)
+            .ToList();
+
+        // Sum changes for identical Time+Operation+Coin
+        // This handles Binance splitting one trade into n identical row sets
+        var grouped = tradeRows
+            .GroupBy(r => new { r.Time, r.Operation, r.Coin })
+            .Select(g => new
             {
-                var type = row.Operation.Contains("Deposit", StringComparison.OrdinalIgnoreCase) ? TransactionType.Deposit :
-                           row.Operation.Contains("Withdraw", StringComparison.OrdinalIgnoreCase) ? TransactionType.Withdrawal :
-                           TransactionType.Transfer;
+                g.Key.Time,
+                g.Key.Operation,
+                g.Key.Coin,
+                TotalChange = g.Sum(x => x.Change)
+            })
+            .ToList();
 
-                canonicalList.Add(new CanonicalTransaction(
-                    timestamp: row.Time,
-                    type: type,
-                    assetIn: row.Change > 0 ? row.Coin : null,
-                    amountIn: row.Change > 0 ? Convert.ToDecimal(row.Change) : 0m,
-                    assetOut: row.Change < 0 ? row.Coin : null,
-                    amountOut: row.Change < 0 ? Math.Abs(Convert.ToDecimal(row.Change)) : 0m,
-                    feeAsset: null,
-                    feeAmount: 0m,
-                    fiatValueAtTimestamp: Math.Abs(Convert.ToDecimal(row.Change)), // best effort for now
-                    fiatValueAtTimestampCurrency: row.Coin // placeholder, may improve later
-                ));
+        // Reconstruct each trade from its legs grouped by timestamp
+        var tradesByTime = grouped.GroupBy(g => g.Time);
+
+        foreach (var timeGroup in tradesByTime)
+        {
+            // Fee leg identified first to exclude it from in/out detection
+            var feeRow = timeGroup.FirstOrDefault(r => BinanceOperations.Fee.Contains(r.Operation));
+            var inRow = timeGroup.FirstOrDefault(r => r.TotalChange > 0 && r != feeRow);
+            var outRow = timeGroup.FirstOrDefault(r => r.TotalChange < 0 && r != feeRow);
+
+            if (inRow == null && outRow == null)
+            {
+                Console.WriteLine(
+                    $"Warning: skipping unrecognised row group at {timeGroup.Key} " +
+                    $"— no in/out legs found. Operations: " +
+                    $"{string.Join(", ", timeGroup.Select(r => r.Operation))}");
+                continue;
             }
 
-            // Handle trades (everything else)
-            var tradeRows = rows
-                .Where(r => !r.Operation.Contains("Deposit", StringComparison.OrdinalIgnoreCase) &&
-                            !r.Operation.Contains("Withdraw", StringComparison.OrdinalIgnoreCase) &&
-                            !r.Operation.Contains("Transfer", StringComparison.OrdinalIgnoreCase))
-                .OrderBy(r => r.Time) // ensure chronological order
-                .ToList();
-
-            // Group by Time, Operation, Coin to reduce duplicates (sum changes)
-            var grouped = tradeRows
-                .GroupBy(r => new { r.Time, r.Operation, r.Coin })
-                .Select(g => new
-                {
-                    g.Key.Time,
-                    g.Key.Operation,
-                    g.Key.Coin,
-                    TotalChange = g.Sum(x => x.Change)
-                })
-                .ToList();
-
-            // For each trade group, map to CanonicalTransaction
-            // Assumption: after grouping we will have either 2 rows (in/out) or 3 rows (in/out/fee)
-            // AssetIn: positive change, AssetOut: negative change, Fee: regex or Operation contains "Fee"
-            var tradesByTime = grouped.GroupBy(g => g.Time);
-
-            foreach (var timeGroup in tradesByTime)
-            {
-                var feeRow = timeGroup.FirstOrDefault(r => r.Operation.Contains("Fee", StringComparison.OrdinalIgnoreCase));
-                var inRow = timeGroup.FirstOrDefault(r => r.TotalChange > 0 && r != feeRow);
-                var outRow = timeGroup.FirstOrDefault(r => r.TotalChange < 0 && r != feeRow);
-
-
-
-                if (inRow == null && outRow == null)
-                {
-                    throw new InvalidOperationException($"Trade at {timeGroup.Key} has no in/out rows.");
-                }
-
-                canonicalList.Add(new CanonicalTransaction(
-                         timestamp: timeGroup.Key,
-                         type: TransactionType.Trade,
-                         assetIn: inRow?.Coin,
-                         amountIn: inRow != null ? Convert.ToDecimal(inRow.TotalChange) : 0m,
-                         assetOut: outRow?.Coin,
-                         amountOut: outRow != null ? Math.Abs(Convert.ToDecimal(outRow.TotalChange)) : 0m,
-                         feeAsset: feeRow?.Coin,
-                         feeAmount: feeRow != null ? Math.Abs(Convert.ToDecimal(feeRow.TotalChange)) : 0m,
-
-                         // TODO: calculate correct fiat value based on exchange rates
-                         fiatValueAtTimestamp: 0m,
-
-                         // TODO: determine the correct fiat currency for this trade
-                         fiatValueAtTimestampCurrency: "USD"
-                     ));
-                                }
-
-            return canonicalList.OrderBy(t => t.Timestamp).ToList();
+            canonicalList.Add(new CanonicalTransaction(
+                timestamp: timeGroup.Key,
+                type: TransactionType.Trade,
+                assetIn: inRow?.Coin,
+                amountIn: inRow != null ? Convert.ToDecimal(inRow.TotalChange) : 0m,
+                assetOut: outRow?.Coin,
+                amountOut: outRow != null ? Math.Abs(Convert.ToDecimal(outRow.TotalChange)) : 0m,
+                feeAsset: feeRow?.Coin,
+                feeAmount: feeRow != null ? Math.Abs(Convert.ToDecimal(feeRow.TotalChange)) : 0m,
+                fiatValueAtTimestamp: 0m,
+                fiatValueAtTimestampCurrency: "USD"
+            ));
         }
+
+        return canonicalList.OrderBy(t => t.Timestamp).ToList();
     }
+
+    private static bool IsDeposit(BinanceRawRow r) => BinanceOperations.Deposit.Contains(r.Operation);
+    private static bool IsWithdrawal(BinanceRawRow r) => BinanceOperations.Withdraw.Contains(r.Operation);
+    private static bool IsTransfer(BinanceRawRow r) => BinanceOperations.Transfer.Contains(r.Operation);
 }
