@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36414.22
@@ -9,15 +9,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaxLedger.Tests", "TaxLedge
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaxLedger.Application", "TaxLedger.Application\TaxLedger.Application.csproj", "{157C148D-7C4F-494B-842E-08A0CB7FA8F9}"
 EndProject
-<<<<<<< HEAD
-=======
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaxLedger.ExchangeAdapters", "TaxLedger.ExchangeAdapters\TaxLedger.ExchangeAdapters.csproj", "{B2779522-8661-42C3-A225-D7463C0BD7BA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaxLedger.Infrastructure", "TaxLedger.Infrastructure\TaxLedger.Infrastructure.csproj", "{40C7B86F-8A3F-4203-AF7B-2E606D3C3078}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaxLedger.Api", "TaxLedger.Api\TaxLedger.Api.csproj", "{D6BA81A4-C2A9-4707-BBC8-7D78E2040653}"
 EndProject
->>>>>>> dev
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -60,8 +57,6 @@ Global
 		{157C148D-7C4F-494B-842E-08A0CB7FA8F9}.Debug|x86.Build.0 = Debug|Any CPU
 		{157C148D-7C4F-494B-842E-08A0CB7FA8F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{157C148D-7C4F-494B-842E-08A0CB7FA8F9}.Release|Any CPU.Build.0 = Release|Any CPU
-<<<<<<< HEAD
-=======
 		{157C148D-7C4F-494B-842E-08A0CB7FA8F9}.Release|x64.ActiveCfg = Release|Any CPU
 		{157C148D-7C4F-494B-842E-08A0CB7FA8F9}.Release|x64.Build.0 = Release|Any CPU
 		{157C148D-7C4F-494B-842E-08A0CB7FA8F9}.Release|x86.ActiveCfg = Release|Any CPU
@@ -102,7 +97,6 @@ Global
 		{D6BA81A4-C2A9-4707-BBC8-7D78E2040653}.Release|x64.Build.0 = Release|Any CPU
 		{D6BA81A4-C2A9-4707-BBC8-7D78E2040653}.Release|x86.ActiveCfg = Release|Any CPU
 		{D6BA81A4-C2A9-4707-BBC8-7D78E2040653}.Release|x86.Build.0 = Release|Any CPU
->>>>>>> dev
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
