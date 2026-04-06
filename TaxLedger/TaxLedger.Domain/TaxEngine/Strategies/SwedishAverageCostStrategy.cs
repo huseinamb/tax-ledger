@@ -12,13 +12,19 @@ namespace TaxLedger.Domain.TaxEngine.Strategies
         public IEnumerable<TaxCalculationResult> Calculate(IEnumerable<CanonicalTransaction> transactions)
         {
             var results = new List<TaxCalculationResult>();
-            // Crucial: Process chronological order to maintain correct GAV
             var sortedTxs = transactions.OrderBy(t => t.Timestamp).ToList();
 
             foreach (var tx in sortedTxs)
             {
-                // --- SCENARIO: ACQUISITION (Asset enters the wallet) ---
-                // AssetIn is the crypto you just got (e.g., BTC).
+                // Non-taxable events: still affect the pool but produce no result
+                if (tx.Type == TransactionType.Withdrawal || tx.Type == TransactionType.Transfer)
+                {
+                    if (!string.IsNullOrEmpty(tx.AssetOut) && tx.AssetOut != "SEK")
+                        ReducePool(tx.AssetOut, tx.AmountOut);
+                    continue; // skip disposal logic entirely
+                }
+
+                // --- ACQUISITION ---
                 if (!string.IsNullOrEmpty(tx.AssetIn) && tx.AssetIn != "SEK")
                 {
                     UpdatePool(
@@ -31,13 +37,10 @@ namespace TaxLedger.Domain.TaxEngine.Strategies
                     );
                 }
 
-                // --- SCENARIO: DISPOSAL (Asset leaves the wallet) ---
-                // AssetOut is the crypto you just gave away or sold.
+                // --- DISPOSAL (trades only) ---
                 if (!string.IsNullOrEmpty(tx.AssetOut) && tx.AssetOut != "SEK")
                 {
-                    // SWEDEN RULE: Sale Price is reduced by fees ONLY if paid in SEK.
                     decimal disposalFeeInSek = (tx.FeeAsset == "SEK") ? tx.FeeAmount : 0m;
-
                     var result = ProcessDisposal(tx, disposalFeeInSek);
                     if (result != null) results.Add(result);
                 }
@@ -98,6 +101,23 @@ namespace TaxLedger.Domain.TaxEngine.Strategies
             holding.TotalCost -= costBasisOfSoldAmount;
 
             return result;
+        }
+        private void ReducePool(string asset, decimal amount)
+        {
+            if (!_holdings.ContainsKey(asset) || _holdings[asset].TotalAmount == 0)
+            {
+                Console.WriteLine($"Warning: withdrawal/transfer of {amount} {asset} " +
+                                  $"but no holding found. Possible missing purchase history.");
+                return;
+            }
+
+            var holding = _holdings[asset];
+            decimal averageCostPerUnit = holding.TotalCost / holding.TotalAmount;
+
+            // Reduce both amount and cost proportionally — same math as a disposal
+            // but without generating a taxable event
+            holding.TotalAmount -= amount;
+            holding.TotalCost -= amount * averageCostPerUnit;
         }
     }
 }
