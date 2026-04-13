@@ -43,7 +43,25 @@ dotnet run --project TaxLedger.Api -- path/to/your_binance_export.csv
 This will print a K4-style tax summary to the console for the year 2024.
 
 ---
+### Test the API with Swagger
 
+Start the API:
+```bash
+dotnet run --project TaxLedger.Api
+```
+
+Open your browser and navigate to:https://localhost:{port}/swagger
+
+Available endpoints:
+- `GET /api/exchanges` — returns supported exchanges
+- `GET /api/countries` — returns supported countries  
+- `POST /api/report/json` — upload a CSV file and get a tax report
+
+For the report endpoint, provide:
+- `file` — your Binance CSV export
+- `exchange` — e.g. `Binance`
+- `country` — e.g. `Sweden`
+- `year` — optional, defaults to the latest year in the data
 ## Supported exchanges and countries
 
 | Exchange | Status |
