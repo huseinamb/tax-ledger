@@ -59,4 +59,41 @@ public static class BinanceCsvReader
                     $"Is this a valid Binance export?");
         }
     }
+    public static IEnumerable<BinanceRawRow> ReadFromStream(Stream stream)
+    {
+        using var reader = new StreamReader(stream);
+        var lines = reader.ReadToEnd()
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries);
+
+        if (lines.Length < 2)
+            throw new InvalidOperationException("CSV file is empty or has no data rows.");
+
+        ValidateHeader(lines[0].Split(','));
+
+        var rows = new List<BinanceRawRow>();
+
+        for (int i = 1; i < lines.Length; i++)
+        {
+            var line = lines[i].Trim();
+            if (string.IsNullOrWhiteSpace(line)) continue;
+
+            var cols = line.Split(',');
+            if (cols.Length < 5)
+            {
+                Console.WriteLine($"Warning: skipping malformed row at line {i + 1}: {line}");
+                continue;
+            }
+
+            rows.Add(new BinanceRawRow
+            {
+                Time = DateTime.Parse(cols[0].Trim(), CultureInfo.InvariantCulture),
+                Account = cols[1].Trim(),
+                Operation = cols[2].Trim(),
+                Coin = cols[3].Trim(),
+                Change = double.Parse(cols[4].Trim(), CultureInfo.InvariantCulture)
+            });
+        }
+
+        return rows;
+    }
 }
