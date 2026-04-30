@@ -79,11 +79,7 @@ public class ReportController : ControllerBase
             return BadRequest("Year cannot be in the future.");
 
         // ── Determine currency for country ─────────────────────────────────────
-        var currencyCode = country.ToLower() switch
-        {
-            "sweden" => "SEK",
-            _ => "USD"
-        };
+        var currencyCode = _countryFactory.GetCurrencyCode(country);
 
         // ── Enrich ─────────────────────────────────────────────────────────────
         List<TaxLedger.Domain.Transactions.CanonicalTransaction> enriched;

@@ -7,4 +7,5 @@ public interface ICountryStrategyFactory
 {
     IEnumerable<string> GetSupportedCountries();
     ITaxCalculationStrategy GetStrategy(string country);
+    string GetCurrencyCode(string country);
 }

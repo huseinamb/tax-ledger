@@ -17,5 +17,11 @@ public sealed class CountryStrategyFactory : ICountryStrategyFactory
             "sweden" => new SwedishAverageCostStrategy(),
             _ => throw new NotSupportedException($"Country '{country}' is not supported.")
         };
+    public string GetCurrencyCode(string country) =>
+    country.ToLower() switch
+    {
+        "sweden" => "SEK",
+        _ => throw new NotSupportedException($"Country '{country}' is not supported.")
+    };
 
 }
