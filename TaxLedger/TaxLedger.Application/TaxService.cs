@@ -7,12 +7,10 @@ namespace TaxLedger.Application;
 public class TaxService
 {
     private readonly ITaxCalculationStrategy _calculationStrategy;
-    private readonly ITaxReportGenerator _reportGenerator;
 
-    public TaxService(ITaxCalculationStrategy strategy, ITaxReportGenerator reporter)
+    public TaxService(ITaxCalculationStrategy strategy)
     {
         _calculationStrategy = strategy;
-        _reportGenerator = reporter;
     }
 
     /// <summary>
@@ -34,16 +32,4 @@ public class TaxService
             .ToList();
     }
 
-    /// <summary>
-    /// Calculates tax results and exports directly to a file.
-    /// Kept for backward compatibility.
-    /// </summary>
-    public void GenerateTaxReport(
-        IEnumerable<CanonicalTransaction> transactions,
-        int targetYear,
-        string outputPath)
-    {
-        var results = CalculateTax(transactions, targetYear);
-        _reportGenerator.Export(results, outputPath);
-    }
 }

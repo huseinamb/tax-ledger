@@ -98,8 +98,7 @@ public class ReportController : ControllerBase
 
         // ── Calculate ──────────────────────────────────────────────────────────
         var strategy = _countryFactory.GetStrategy(country);
-        var reporter = _countryFactory.GetReporter(country);
-        var taxService = new TaxService(strategy, reporter);
+        var taxService = new TaxService(strategy);
         var results = taxService.CalculateTax(enriched, targetYear).ToList();
 
         // ── Summarize ──────────────────────────────────────────────────────────────
