@@ -4,7 +4,7 @@ TaxLedger helps cryptocurrency traders generate accurate tax reports from their 
 
 Currently supports **Binance** exports and **Swedish tax regulations (K4 / Section D)**.
 
-> ⚠️ **Work in progress.** The tax calculation logic has been verified against published Skatteverket examples. The full pipeline (including live price enrichment) has not yet been verified end-to-end against a confirmed dataset. Do not use for actual tax filings without reviewing the output carefully.
+> ℹ️ **Work in progress.** Tax calculation logic is verified against published Skatteverket examples. As with any tax tool, always review the output carefully before filing. Live price data is fetched from Binance (crypto prices) and Frankfurter (forex rates, sourced from ECB) — small rounding differences may occur.
 
 ---
 
@@ -32,29 +32,22 @@ cd tax-ledger/TaxLedger
 dotnet test
 ```
 
-### Try it with your own data
-
-Export your transaction history from Binance as a CSV file, then run:
-
-```bash
-dotnet run --project TaxLedger.Api -- path/to/your_binance_export.csv
-```
-
-This will print a K4-style tax summary to the console for the year 2024.
-
----
 ### Test the API with Swagger
 
 Start the API:
 ```bash
+cd tax-ledger/TaxLedger
 dotnet run --project TaxLedger.Api
 ```
 
-Open your browser and navigate to:https://localhost:{port}/swagger
+Open your browser and navigate to:
+```
+https://localhost:{port}/swagger
+```
 
 Available endpoints:
 - `GET /api/exchanges` — returns supported exchanges
-- `GET /api/countries` — returns supported countries  
+- `GET /api/countries` — returns supported countries
 - `POST /api/report/json` — upload a CSV file and get a tax report
 
 For the report endpoint, provide:
@@ -62,6 +55,11 @@ For the report endpoint, provide:
 - `exchange` — e.g. `Binance`
 - `country` — e.g. `Sweden`
 - `year` — optional, defaults to the latest year in the data
+
+The response includes a **summary** grouped by asset (matching Skatteverket K4 format) and a full **transaction-level breakdown** for manual verification.
+
+---
+
 ## Supported exchanges and countries
 
 | Exchange | Status |
@@ -82,12 +80,12 @@ For the report endpoint, provide:
 The solution is structured around Clean Architecture — the tax engine has no knowledge of HTTP, files, or any specific exchange. Adding a new exchange is one new CSV adapter. Adding a new country is one new strategy class.
 
 ```
-TaxLedger.Domain          # Transaction models, tax engine interfaces
-TaxLedger.Application     # Pipeline orchestration, pricing contracts
-TaxLedger.Infrastructure  # Binance API, Frankfurter forex, price enrichment
+TaxLedger.Domain           # Transaction models, tax engine interfaces
+TaxLedger.Application      # Pipeline orchestration, pricing contracts, factories
+TaxLedger.Infrastructure   # Binance API, Frankfurter forex, price enrichment, factory implementations
 TaxLedger.ExchangeAdapters # CSV parsers per exchange (currently Binance)
-TaxLedger.Api             # ASP.NET Core Web API (in progress)
-TaxLedger.Tests           # xUnit unit and integration tests
+TaxLedger.Api              # ASP.NET Core Web API
+TaxLedger.Tests            # xUnit unit and integration tests
 ```
 
 Prices are fetched from public endpoints only — no API keys are stored or required anywhere in the codebase.
@@ -98,14 +96,13 @@ Prices are fetched from public endpoints only — no API keys are stored or requ
 
 - [x] Domain model — `CanonicalTransaction`, `TransactionType`, `AssetHolding`
 - [x] Swedish GAV strategy — *Genomsnittsmetoden* with correct SEK fee handling
-- [x] K4 report generator — grouped by asset, gains and losses separated (70% rule)
 - [x] Binance CSV adapter — handles all operation name variants and n-split trades
 - [x] Price enrichment pipeline — Binance 1m klines + Frankfurter forex, no API keys needed
 - [x] Full end-to-end pipeline — CSV → parse → enrich → calculate → report
 - [x] Tax calculation logic verified against published Skatteverket examples (unit tested)
-- [ ] End-to-end verification of enriched pipeline output against a known dataset
-- [ ] REST API — upload CSV, select country and year, receive report
-- [ ] React frontend — file upload and report display
+- [x] REST API — upload CSV, select country and year, receive JSON report
+- [ ] React frontend — file upload, summary display, transaction breakdown
+- [ ] CSV download endpoint
 - [ ] Coinbase and Kraken CSV adapters
 - [ ] US FIFO tax strategy
 - [ ] `.sru` export for direct Skatteverket digital filing
