@@ -66,5 +66,6 @@ namespace TaxLedger.Domain.Reporting.Countries
                 Console.WriteLine($"{s.Asset,-10} | {s.TotalSalePrice,12:N0} | {s.TotalCostBasis,12:N0} | {s.TotalGain,10:N0} | {s.TotalLoss,10:N0}");
             }
         }
+
     }
 }

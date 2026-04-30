@@ -102,7 +102,10 @@ public class ReportController : ControllerBase
         var taxService = new TaxService(strategy, reporter);
         var results = taxService.CalculateTax(enriched, targetYear).ToList();
 
-        // ── Build response ─────────────────────────────────────────────────────
+        // ── Summarize ──────────────────────────────────────────────────────────────
+        var summary = TaxReportSummarizer.Summarize(results);
+
+        // ── Build response ─────────────────────────────────────────────────────────
         var response = new
         {
             Exchange = exchange,
@@ -113,7 +116,15 @@ public class ReportController : ControllerBase
             TotalSalePrice = results.Sum(r => r.SalePrice),
             TotalCostBasis = results.Sum(r => r.PurchasePrice),
             TotalGainLoss = results.Sum(r => r.GainLoss),
-            Results = results.Select(r => new
+            Summary = summary.Select(s => new
+            {
+                s.Asset,
+                s.TotalSalePrice,
+                s.TotalCostBasis,
+                s.TotalGain,
+                s.TotalLoss
+            }),
+            Transactions = results.Select(r => new
             {
                 r.Asset,
                 Timestamp = r.OriginTransaction.Timestamp,
