@@ -1,18 +1,39 @@
-// UploadForm.jsx
-// This component is responsible for collecting user input:
-// the CSV file, exchange, country and optional year.
-// It receives an "onSubmit" function from App.jsx and calls it
-// with the form data when the user clicks "Generate Report".
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+
+const API_BASE = 'https://localhost:7148'
+
 function UploadForm({ onSubmit, loading }) {
-    // Local state for each form field
     const [file, setFile] = useState(null)
-    const [exchange, setExchange] = useState('Binance')
-    const [country, setCountry] = useState('Sweden')
+    const [exchange, setExchange] = useState('')
+    const [country, setCountry] = useState('')
     const [year, setYear] = useState('')
 
+    // Dynamic lists from the API
+    const [exchanges, setExchanges] = useState([])
+    const [countries, setCountries] = useState([])
+
+    // Fetch supported exchanges and countries when the component loads
+    // useEffect runs once after the component is first rendered
+    useEffect(() => {
+        fetch(`${API_BASE}/api/exchanges`)
+            .then(res => res.json())
+            .then(data => {
+                setExchanges(data)
+                setExchange(data[0] ?? '') // default to first option
+            })
+            .catch(() => setExchanges(['Binance'])) // fallback if API is down
+
+        fetch(`${API_BASE}/api/countries`)
+            .then(res => res.json())
+            .then(data => {
+                setCountries(data)
+                setCountry(data[0] ?? '')
+            })
+            .catch(() => setCountries(['Sweden']))
+    }, []) // empty array means "run once on mount"
+
     const handleSubmit = (e) => {
-        e.preventDefault() // prevent page reload on form submit
+        e.preventDefault()
         if (!file) return
         onSubmit({ file, exchange, country, year })
     }
@@ -21,17 +42,19 @@ function UploadForm({ onSubmit, loading }) {
         <form onSubmit={handleSubmit} className="upload-form">
             <div className="form-group">
                 <label>Exchange</label>
-                {/* TODO: replace with dynamic list from GET /api/exchanges */}
                 <select value={exchange} onChange={(e) => setExchange(e.target.value)}>
-                    <option value="Binance">Binance</option>
+                    {exchanges.map(ex => (
+                        <option key={ex} value={ex}>{ex}</option>
+                    ))}
                 </select>
             </div>
 
             <div className="form-group">
                 <label>Country</label>
-                {/* TODO: replace with dynamic list from GET /api/countries */}
                 <select value={country} onChange={(e) => setCountry(e.target.value)}>
-                    <option value="Sweden">Sweden</option>
+                    {countries.map(c => (
+                        <option key={c} value={c}>{c}</option>
+                    ))}
                 </select>
             </div>
 
@@ -44,6 +67,7 @@ function UploadForm({ onSubmit, loading }) {
                     min="2009"
                     max={new Date().getFullYear()}
                     onChange={(e) => setYear(e.target.value)}
+                    autoComplete="off"
                 />
             </div>
 
